@@ -4,10 +4,12 @@ import org.junit.Test;
 
 import java.util.*;
 
-public class creat {
-    private static int r = 70;
-    static Random random = new Random();
-
+public class Creat {
+    public static int r = 70;
+    public static Random random = new Random();
+    public  static void setR(int r){
+        Creat.r = r;
+    }
     /*
      * 求最大公约数
      * */
@@ -30,16 +32,19 @@ public class creat {
      * 创建真分数,替换a
      * */
     public static String realSplitNum(String org, int aNum) {
-        String temp = null;
+        String temp;
 
         for (int i = 0; i < aNum; i++) {
             int t1 = random.nextInt(1, r);
             int t2 = random.nextInt(1, r);
-            if (t1 <= t2) {
+            if (t1 < t2) {
                 temp = t1 + "/" + t2;
-            } else {
+            } else if (t1 > t2) {
                 temp = t2 + "/" + t1;
+            }else {
+                return realSplitNum(org,aNum);
             }
+
             org = org.replaceFirst("a", temp);
         }
         return org;
@@ -64,7 +69,7 @@ public class creat {
      * */
     public static String compute(String t) {
 
-        String ans = null;
+        String ans;
         String[] split = t.split(" ");
         String[] aSplit = split[0].split("/");
         String[] bSplit = split[2].split("/");
@@ -73,20 +78,13 @@ public class creat {
         zb = Integer.parseInt(bSplit[0]);
         if (aSplit.length == 2) ma = Integer.parseInt(aSplit[1]);
         if (bSplit.length == 2) mb = Integer.parseInt(bSplit[1]);
-        switch (split[1]) {
-            case "+":
-                ans = add(za, ma, zb, mb);
-                break;
-            case "-":
-                ans = sub(za, ma, zb, mb);
-                break;
-            case "×":
-                ans = mul(za, ma, zb, mb);
-                break;
-            case "÷":
-                ans = div(za, ma, zb, mb);
-                break;
-        }
+        ans = switch (split[1]) {
+            case "+" -> add(za, ma, zb, mb);
+            case "-" -> sub(za, ma, zb, mb);
+            case "×" -> mul(za, ma, zb, mb);
+            case "÷" -> div(za, ma, zb, mb);
+            default -> null;
+        };
         return ans;
     }
 
@@ -165,7 +163,7 @@ public class creat {
                     if ((peek == '+' || peek == '-') && (charArray[i] == '÷' || charArray[i] == '×')) {
                         //优先级更高，加入
                         opeStack.push(charArray[i]);
-                        numStack.push(split[numStack.size()]);
+                        numStack.push(split[len++]);
                     } else {//当前运算符优先级小于栈首
                         String s = numStack.get(numStack.size() - 2) + " " + opeStack.pop() + " " + numStack.pop();
                         numStack.pop();
@@ -178,12 +176,13 @@ public class creat {
                 }
             }
         }
-        if (!opeStack.isEmpty()) {
+        while (!opeStack.isEmpty()) {
             String beCount = numStack.pop();
             String mainCount = numStack.pop();
             ans = compute(mainCount + " " + opeStack.pop() + " " + beCount);
             if(ans == null) return null;
-            System.out.println("ans:    " + ans);
+            numStack.push(ans);
+           // System.out.println("ans:    " + ans);
         }
 
         return ans;
@@ -192,116 +191,15 @@ public class creat {
     @Test
     public void text() {
 
-        count("29 - 26/31 - 67 - 45");
-        // System.out.println("a+b".indexOf('('));
-        // System.out.println("56/78".split("/")[1]);
-    }
-
-    public static void main(String[] args) {
-        //运算符个数
-        int n = random.nextInt(1, 4);
-        System.out.println(n);
-        //数据个数
-        int m = n + 1;
-        int simple = random.nextInt(1, 3);
-        //用于判断是否加括号
-        char[] product = new char[4 * n + 1];
-        int aNum = 0, bNum = 0;
-        Queue<Integer> queue = new LinkedList<>();
-        for (int i = 0; i < product.length; i++) {
-            if (i % 4 == 0) {
-                if (random()) {//给真分数占位
-                    product[i] = 'a';
-                    aNum++;
-                } else {
-
-                    int num = random.nextInt(1, r);
-
-                    queue.add(num);
-                    product[i] = 'b';
-                    bNum++;
-
-                }
-            } else if ((i + 2) % 4 == 0) {
-                //随机生成运算符
-                int nextInt = random.nextInt(1, 5);
-                switch (nextInt) {
-                    case 1:
-                        product[i] = '+';
-
-                        break;
-                    case 2:
-                        product[i] = '-';
-
-                        break;
-                    case 3:
-                        product[i] = '×';
-
-                        break;
-                    case 4:
-                        product[i] = '÷';
-
-                        break;
-                }
-            } else {
-                product[i] = ' ';
-            }
-        }
-        System.out.println("a:" + aNum + ",b:" + bNum + "\nc:" + new String(product));
-        String obj = new String(product);
-
-
-        //随机决定在某个数据前添加左括号
-        if (simple <= 1) {
-            String[] split = obj.split(" [+-×÷] ");
-            int t = random.nextInt(0, n);
-            int index = obj.indexOf(split[t]);
-            StringBuilder inBer = new StringBuilder(obj);
-            inBer.insert(index, '(');
-            inBer.insert(index + 6, ')');
-            obj = inBer.toString();
-        }
-        //随机生成真分数
-        obj = realSplitNum(obj, aNum);
-        System.out.println(obj);
-
-        //替换b
-        obj = creatNum(queue, obj);
-        System.out.println("org:    " + obj);
-        String count = count(obj);
-        if(count == null)return;
-        count="2352520/9568";
-        String[] split1 = count.split("/");
-        if (split1.length == 2) {
-            int a = Integer.parseInt(split1[0]);
-            int b = Integer.parseInt(split1[1]);
-            if (a > b) {//带分数
-                int d = a / b;
-                //分子
-                int y = a % b;
-                if(y!=0){
-                    int gcd = gcd(y, b);
-                    y /= gcd;
-                    b /= gcd;
-                    String ans = d + "\\'" + y + "/" + b;
-                    System.out.println("ans1:"+ans);
-                }
-
-            }else{
-                int gcd = gcd(a, b);
-                a /= gcd;
-                b /= gcd;
-                String ans =  a + "/" + b;
-                System.out.println("ans2"+ans);
-            }
-        }
+        System.out.println(count("2/5 ÷ 4 - 6/9 ÷ 4"));
 
     }
+
+
 
     public static boolean random() {
         int i = random.nextInt(1, 3);
-        if (i == 1) return true;
-        else return false;
+        return i == 1;
     }
 
 }
